@@ -19,6 +19,8 @@ class OngoingController extends GetxController {
   static const double maxDistanceThreshold = 30.0;  
   static const double maxAllowedAccuracy = 20.0;    
 
+  static const double minSpeedThreshold = 0.5; 
+
   void startTracking() async {
     bool permissionGranted = await locationService.ensurePermission();
     if (!permissionGranted) {
@@ -67,7 +69,14 @@ class OngoingController extends GetxController {
           position.longitude,
         );
 
-        if (distance > minDistanceThreshold && distance < maxDistanceThreshold) {
+        final timeDiff = position.timestamp.difference(_lastPosition!.timestamp).inSeconds;
+
+        final speed = timeDiff > 0 ? distance / timeDiff : 0; // Updated line
+
+        if (distance > minDistanceThreshold && 
+            distance < maxDistanceThreshold && 
+            speed > minSpeedThreshold) {  
+
           totalDistance.value += distance;
           steps.value = (totalDistance.value / 0.75).round();
           _lastPosition = position;
@@ -78,10 +87,11 @@ class OngoingController extends GetxController {
             print('➕ Added distance: ${distance.toStringAsFixed(2)} m');
             print('📏 Total distance: ${totalDistance.value.toStringAsFixed(2)} m');
             print('👣 Estimated steps: ${steps.value}');
+            print('🚶 Speed: ${speed.toStringAsFixed(2)} m/s'); 
           }
         } else {
           if (kDebugMode) {
-            print('⚠️ Ignored small or large jump: $distance meters');
+            print('⚠️ Ignored small/large jump or low speed: distance=$distance m, speed=${speed.toStringAsFixed(2)} m/s');
           }
         }
       },
