@@ -15,11 +15,12 @@ class OngoingController extends GetxController {
   StreamSubscription<Position>? _positionSub;
   Position? _lastPosition;
 
-  static const double minDistanceThreshold = 0.5;   
-  static const double maxDistanceThreshold = 30.0;  
-  static const double maxAllowedAccuracy = 20.0;    
+  static const double minDistanceThreshold = 0.5;
+  static const double maxDistanceThreshold = 30.0;
+  static const double maxAllowedAccuracy = 20.0;
+  static const double averageStepLength = 0.75;
 
-  static const double minSpeedThreshold = 0.5; 
+  static const double minSpeedThreshold = 0.5;
 
   void startTracking() async {
     bool permissionGranted = await locationService.ensurePermission();
@@ -57,7 +58,9 @@ class OngoingController extends GetxController {
           _lastPosition = position;
           route.add(position);
           if (kDebugMode) {
-            print('📍 First position recorded: ${position.latitude}, ${position.longitude}');
+            print(
+              '📍 First position recorded: ${position.latitude}, ${position.longitude}',
+            );
           }
           return;
         }
@@ -69,29 +72,35 @@ class OngoingController extends GetxController {
           position.longitude,
         );
 
-        final timeDiff = position.timestamp.difference(_lastPosition!.timestamp).inSeconds;
+        final timeDiff =
+            position.timestamp.difference(_lastPosition!.timestamp).inSeconds;
 
         final speed = timeDiff > 0 ? distance / timeDiff : 0; // Updated line
 
-        if (distance > minDistanceThreshold && 
-            distance < maxDistanceThreshold && 
-            speed > minSpeedThreshold) {  
-
+        if (distance > minDistanceThreshold &&
+            distance < maxDistanceThreshold &&
+            speed > minSpeedThreshold) {
           totalDistance.value += distance;
-          steps.value = (totalDistance.value / 0.75).round();
+          steps.value = (totalDistance.value / averageStepLength).round();
           _lastPosition = position;
           route.add(position);
 
           if (kDebugMode) {
-            print('📍 New position: ${position.latitude}, ${position.longitude} (accuracy: ${position.accuracy}m)');
+            print(
+              '📍 New position: ${position.latitude}, ${position.longitude} (accuracy: ${position.accuracy}m)',
+            );
             print('➕ Added distance: ${distance.toStringAsFixed(2)} m');
-            print('📏 Total distance: ${totalDistance.value.toStringAsFixed(2)} m');
+            print(
+              '📏 Total distance: ${totalDistance.value.toStringAsFixed(2)} m',
+            );
             print('👣 Estimated steps: ${steps.value}');
-            print('🚶 Speed: ${speed.toStringAsFixed(2)} m/s'); 
+            print('🚶 Speed: ${speed.toStringAsFixed(2)} m/s');
           }
         } else {
           if (kDebugMode) {
-            print('⚠️ Ignored small/large jump or low speed: distance=$distance m, speed=${speed.toStringAsFixed(2)} m/s');
+            print(
+              '⚠️ Ignored small/large jump or low speed: distance=$distance m, speed=${speed.toStringAsFixed(2)} m/s',
+            );
           }
         }
       },

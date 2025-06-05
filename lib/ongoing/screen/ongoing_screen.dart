@@ -49,11 +49,10 @@ class OngoingScreen extends StatelessWidget {
                     "${ongoingController.totalDistance.value.toStringAsFixed(2)} meters",
                     style: const TextStyle(fontSize: 24),
                   ),
-                  Obx(
-                    () => Text(
-                      "${ongoingController.steps.value} Steps",
-                      style: const TextStyle(fontSize: 24),
-                    ),
+
+                  Text(
+                    "${ongoingController.steps.value} Steps",
+                    style: const TextStyle(fontSize: 24),
                   ),
                 ],
               ),
