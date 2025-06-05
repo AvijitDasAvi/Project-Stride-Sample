@@ -1,7 +1,7 @@
 import 'package:geolocator/geolocator.dart';
 
 class LocationService {
-  /// Ensure location service and permissions are enabled/granted.
+
   Future<bool> ensurePermission() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) return false;
@@ -23,7 +23,7 @@ class LocationService {
     return Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.bestForNavigation,
-        distanceFilter: 2, 
+        distanceFilter: 2,
       ),
     );
   }
@@ -37,5 +37,10 @@ class LocationService {
       // ignore: deprecated_member_use
       desiredAccuracy: LocationAccuracy.bestForNavigation,
     );
+  }
+
+  /// ⛰️ Altitude stream for climb tracking (returns only altitude values)
+  Stream<double> getAltitudeStream() {
+    return getPositionStream().map((position) => position.altitude);
   }
 }

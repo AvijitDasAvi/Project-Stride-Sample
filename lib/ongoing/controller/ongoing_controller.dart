@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:project_stride_sample/ongoing/service/location_service.dart';
+import 'package:project_stride_sample/service/location_service.dart';
 
 class OngoingController extends GetxController {
   final locationService = LocationService();

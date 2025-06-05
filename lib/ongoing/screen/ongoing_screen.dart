@@ -1,6 +1,7 @@
 // lib/ongoing/view/ongoing_screen.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:project_stride_sample/onclimb/screen/climb_screen.dart';
 import 'package:project_stride_sample/ongoing/controller/ongoing_controller.dart';
 
 class OngoingScreen extends StatelessWidget {
@@ -83,6 +84,11 @@ class OngoingScreen extends StatelessWidget {
               ElevatedButton(
                 onPressed: ongoingController.resetTracking,
                 child: const Text("Reset"),
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => Get.to(() => ClimbScreen()),
+                child: const Text("Climbing"),
               ),
             ],
           );
