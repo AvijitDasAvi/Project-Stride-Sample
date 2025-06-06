@@ -1,16 +1,51 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:project_stride_sample/service/location_service.dart';
 
-class OngoingController extends GetxController {
+class OngoingController extends GetxController
+    with GetTickerProviderStateMixin {
   final locationService = LocationService();
 
   final RxDouble totalDistance = 0.0.obs;
   final RxInt steps = 0.obs;
   final RxList<Position> route = <Position>[].obs;
   final RxBool isTracking = false.obs;
+  late AnimationController animationController;
+  final RxDouble offset = 0.0.obs;
+  double scrollSpeed = 50.0;
+
+  @override
+  void onInit() {
+    super.onInit();
+    animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(days: 1),
+    );
+
+    animationController.addListener(() {
+      final elapsed =
+          animationController.lastElapsedDuration?.inMilliseconds ?? 0;
+      offset.value = (elapsed / 1000) * scrollSpeed;
+    });
+  }
+
+  void setScrollSpeed(double imageWidth, double seconds) {
+    scrollSpeed = imageWidth / seconds;
+    update();
+  }
+
+  void start() {
+    if (!animationController.isAnimating) {
+      animationController.repeat();
+    }
+  }
+
+  void stop() {
+    animationController.stop();
+  }
 
   StreamSubscription<Position>? _positionSub;
   Position? _lastPosition;
@@ -130,6 +165,7 @@ class OngoingController extends GetxController {
 
   @override
   void onClose() {
+    animationController.dispose();
     stopTracking();
     super.onClose();
   }
