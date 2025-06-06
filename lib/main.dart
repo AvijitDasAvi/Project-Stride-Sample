@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
-import 'package:project_stride_sample/ongoing/screen/ongoing_screen.dart';
+import 'package:project_stride_sample/animation/vertical/screen/vertical_animation.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      home: OngoingScreen(),
+      home: VerticalAnimation(),
     );
   }
 }
