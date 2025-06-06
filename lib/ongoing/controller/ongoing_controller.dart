@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:audioplayers/audioplayers.dart'; 
 import 'package:project_stride_sample/service/location_service.dart';
 
 class OngoingController extends GetxController
@@ -13,6 +14,7 @@ class OngoingController extends GetxController
   final RxInt steps = 0.obs;
   final RxList<Position> route = <Position>[].obs;
   final RxBool isTracking = false.obs;
+  late AudioPlayer audioPlayer;
   late AnimationController animationController;
   final RxDouble offset = 0.0.obs;
   double scrollSpeed = 50.0;
@@ -24,12 +26,13 @@ class OngoingController extends GetxController
       vsync: this,
       duration: const Duration(days: 1),
     );
-
     animationController.addListener(() {
       final elapsed =
           animationController.lastElapsedDuration?.inMilliseconds ?? 0;
       offset.value = (elapsed / 1000) * scrollSpeed;
     });
+    audioPlayer = AudioPlayer();
+    audioPlayer.setSource(AssetSource('music/Running.wav'));
   }
 
   void setScrollSpeed(double imageWidth, double seconds) {
@@ -54,10 +57,11 @@ class OngoingController extends GetxController
   static const double maxDistanceThreshold = 30.0;
   static const double maxAllowedAccuracy = 20.0;
   static const double averageStepLength = 0.75;
-
   static const double minSpeedThreshold = 0.5;
 
   void startTracking() async {
+    await audioPlayer.setSource(AssetSource('music/Running.wav'));
+    await audioPlayer.resume();
     bool permissionGranted = await locationService.ensurePermission();
     if (!permissionGranted) {
       Get.snackbar("Permission Denied", "Location permission is required.");
@@ -110,7 +114,7 @@ class OngoingController extends GetxController
         final timeDiff =
             position.timestamp.difference(_lastPosition!.timestamp).inSeconds;
 
-        final speed = timeDiff > 0 ? distance / timeDiff : 0; // Updated line
+        final speed = timeDiff > 0 ? distance / timeDiff : 0;
 
         if (distance > minDistanceThreshold &&
             distance < maxDistanceThreshold &&
@@ -149,7 +153,8 @@ class OngoingController extends GetxController
     isTracking.value = true;
   }
 
-  void stopTracking() {
+  void stopTracking() async{
+    await audioPlayer.stop();
     _positionSub?.cancel();
     _positionSub = null;
     isTracking.value = false;
@@ -166,6 +171,7 @@ class OngoingController extends GetxController
   @override
   void onClose() {
     animationController.dispose();
+    audioPlayer.dispose();
     stopTracking();
     super.onClose();
   }
