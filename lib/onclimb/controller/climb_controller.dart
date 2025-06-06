@@ -1,17 +1,43 @@
-// lib/climb/controller/climb_controller.dart
 import 'dart:async';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:project_stride_sample/service/location_service.dart';
 
-class ClimbController extends GetxController {
+class ClimbController extends GetxController with GetTickerProviderStateMixin {
   final locationService = LocationService();
 
   final RxDouble totalElevation = 0.0.obs;
   final RxList<double> altitudeRoute = <double>[].obs;
   final RxBool isTracking = false.obs;
   final RxInt floorCount = 0.obs;
+  late AnimationController animationController;
+  final RxDouble offset = 0.0.obs;
+  double scrollSpeed = 50.0;
+  late AudioPlayer audioPlayer;
+
+  @override
+  void onInit() {
+    super.onInit();
+    animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(days: 1),
+    );
+    audioPlayer = AudioPlayer();
+    audioPlayer.setSource(AssetSource('music/Elevator.wav'));
+    animationController.addListener(() {
+      final elapsed =
+          animationController.lastElapsedDuration?.inMilliseconds ?? 0;
+      offset.value = (elapsed / 1000) * scrollSpeed;
+    });
+  }
+
+  void setScrollSpeed(double imageWidth, double seconds) {
+    scrollSpeed = imageWidth / seconds;
+    update();
+  }
 
   StreamSubscription<Position>? _positionSub;
   double? _lastAltitude;
@@ -19,6 +45,11 @@ class ClimbController extends GetxController {
   static const double minAltitudeThreshold = 0.5;
 
   void startClimbTracking() async {
+    audioPlayer.setSource(AssetSource('music/Elevator.wav'));
+    audioPlayer.resume();
+    if (!animationController.isAnimating) {
+      animationController.repeat();
+    }
     bool permissionGranted = await locationService.ensurePermission();
     if (!permissionGranted) {
       Get.snackbar("Permission Denied", "Location permission is required.");
@@ -70,11 +101,13 @@ class ClimbController extends GetxController {
   }
 
   void countFloor() {
-    floorCount.value = (totalElevation.value / 2.4384).floor();
+    floorCount.value = ((totalElevation.value / 2.4384) / 2).floor();
   }
 
-  void stopClimbTracking() {
+  void stopClimbTracking() async {
+    await audioPlayer.stop();
     _positionSub?.cancel();
+    animationController.stop();
     _positionSub = null;
     isTracking.value = false;
   }
@@ -88,7 +121,9 @@ class ClimbController extends GetxController {
 
   @override
   void onClose() {
+    audioPlayer.dispose();
     stopClimbTracking();
+    animationController.dispose();
     super.onClose();
   }
 }
